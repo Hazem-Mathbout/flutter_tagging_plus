@@ -247,8 +247,6 @@ class _FlutterTaggingState<T extends Taggable>
             }
           },
           builder: (context, controller, focusNode) {
-            _textController = controller;
-            _focusNode = focusNode;
             return TextField(
               controller: controller,
               focusNode: focusNode,
