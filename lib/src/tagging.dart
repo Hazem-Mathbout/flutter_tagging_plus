@@ -17,7 +17,7 @@ class FlutterTagging<T extends Taggable> extends StatefulWidget {
   final VoidCallback? onChanged;
 
   /// The configuration of the [TextField] that the [FlutterTagging] widget displays.
-  final TextFieldConfiguration textFieldConfiguration;
+  final TextField textFieldConfiguration;
 
   /// Called with the search pattern to get the search suggestions.
   ///
@@ -71,7 +71,7 @@ class FlutterTagging<T extends Taggable> extends StatefulWidget {
   /// controller, and expected to return some animation that uses the controller
   /// to display the suggestion box.
   final Widget Function(BuildContext, Widget, AnimationController?)?
-      transitionBuilder;
+  transitionBuilder;
 
   /// The configuration of suggestion box.
   final SuggestionsBoxConfiguration suggestionsBoxConfiguration;
@@ -145,7 +145,7 @@ class FlutterTagging<T extends Taggable> extends StatefulWidget {
     this.loadingBuilder,
     this.emptyBuilder,
     this.wrapConfiguration = const WrapConfiguration(),
-    this.textFieldConfiguration = const TextFieldConfiguration(),
+    this.textFieldConfiguration = const TextField(),
     this.suggestionsBoxConfiguration = const SuggestionsBoxConfiguration(),
     this.transitionBuilder,
     this.debounceDuration = const Duration(milliseconds: 300),
@@ -189,42 +189,6 @@ class _FlutterTaggingState<T extends Taggable>
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         TypeAheadField<T>(
-          getImmediateSuggestions: widget.enableImmediateSuggestion,
-          debounceDuration: widget.debounceDuration,
-          hideOnEmpty: widget.hideOnEmpty,
-          hideOnError: widget.hideOnError,
-          hideOnLoading: widget.hideOnLoading,
-          animationStart: widget.animationStart,
-          animationDuration: widget.animationDuration,
-          autoFlipDirection:
-              widget.suggestionsBoxConfiguration.autoFlipDirection,
-          direction: widget.suggestionsBoxConfiguration.direction,
-          hideSuggestionsOnKeyboardHide:
-              widget.suggestionsBoxConfiguration.hideSuggestionsOnKeyboardHide,
-          keepSuggestionsOnLoading:
-              widget.suggestionsBoxConfiguration.keepSuggestionsOnLoading,
-          keepSuggestionsOnSuggestionSelected: widget
-              .suggestionsBoxConfiguration.keepSuggestionsOnSuggestionSelected,
-          suggestionsBoxController:
-              widget.suggestionsBoxConfiguration.suggestionsBoxController,
-          suggestionsBoxDecoration:
-              widget.suggestionsBoxConfiguration.suggestionsBoxDecoration,
-          suggestionsBoxVerticalOffset:
-              widget.suggestionsBoxConfiguration.suggestionsBoxVerticalOffset,
-          errorBuilder: widget.errorBuilder,
-          transitionBuilder: widget.transitionBuilder,
-          loadingBuilder: (context) =>
-              widget.loadingBuilder?.call(context) ??
-              SizedBox(
-                height: 3.0,
-                child: LinearProgressIndicator(),
-              ),
-          noItemsFoundBuilder: widget.emptyBuilder,
-          textFieldConfiguration: widget.textFieldConfiguration.copyWith(
-            focusNode: _focusNode,
-            controller: _textController,
-            enabled: widget.textFieldConfiguration.enabled,
-          ),
           suggestionsCallback: (query) async {
             final suggestions = await widget.findSuggestions(query);
             suggestions.removeWhere(widget.initialItems.contains);
@@ -267,14 +231,14 @@ class _FlutterTaggingState<T extends Taggable>
                     if (conf.additionWidget != null && _additionItem == item) {
                       return conf.additionWidget!;
                     } else {
-                      return SizedBox(width: 0);
+                      return const SizedBox(width: 0);
                     }
                   },
                 ),
               ),
             );
           },
-          onSuggestionSelected: (suggestion) {
+          onSelected: (suggestion) {
             if (_additionItem != suggestion) {
               widget.initialItems.add(suggestion);
               setState(() {});
@@ -282,6 +246,24 @@ class _FlutterTaggingState<T extends Taggable>
               _textController.clear();
             }
           },
+          builder: (context, controller, focusNode) {
+            _textController = controller;
+            _focusNode = focusNode;
+            return TextField(
+              controller: controller,
+              focusNode: focusNode,
+              enabled: widget.textFieldConfiguration.enabled,
+              decoration: widget.textFieldConfiguration.decoration,
+              style: widget.textFieldConfiguration.style,
+              textAlign: widget.textFieldConfiguration.textAlign,
+            );
+          },
+          loadingBuilder:
+              (context) =>
+                  widget.loadingBuilder?.call(context) ??
+                  const SizedBox(height: 3.0, child: LinearProgressIndicator()),
+          emptyBuilder: widget.emptyBuilder,
+          errorBuilder: widget.errorBuilder,
         ),
         Wrap(
           alignment: widget.wrapConfiguration.alignment,
@@ -292,30 +274,31 @@ class _FlutterTaggingState<T extends Taggable>
           direction: widget.wrapConfiguration.direction,
           textDirection: widget.wrapConfiguration.textDirection,
           verticalDirection: widget.wrapConfiguration.verticalDirection,
-          children: widget.initialItems.map<Widget>((item) {
-            final conf = widget.configureChip(item);
-            return Chip(
-              label: conf.label,
-              shape: conf.shape,
-              avatar: conf.avatar,
-              backgroundColor: conf.backgroundColor,
-              clipBehavior: conf.clipBehavior,
-              deleteButtonTooltipMessage: conf.deleteButtonTooltipMessage,
-              deleteIcon: conf.deleteIcon,
-              deleteIconColor: conf.deleteIconColor,
-              elevation: conf.elevation,
-              labelPadding: conf.labelPadding,
-              labelStyle: conf.labelStyle,
-              materialTapTargetSize: conf.materialTapTargetSize,
-              padding: conf.padding,
-              shadowColor: conf.shadowColor,
-              onDeleted: () {
-                widget.initialItems.remove(item);
-                setState(() {});
-                widget.onChanged?.call();
-              },
-            );
-          }).toList(),
+          children:
+              widget.initialItems.map<Widget>((item) {
+                final conf = widget.configureChip(item);
+                return Chip(
+                  label: conf.label,
+                  shape: conf.shape,
+                  avatar: conf.avatar,
+                  backgroundColor: conf.backgroundColor,
+                  clipBehavior: conf.clipBehavior,
+                  deleteButtonTooltipMessage: conf.deleteButtonTooltipMessage,
+                  deleteIcon: conf.deleteIcon,
+                  deleteIconColor: conf.deleteIconColor,
+                  elevation: conf.elevation,
+                  labelPadding: conf.labelPadding,
+                  labelStyle: conf.labelStyle,
+                  materialTapTargetSize: conf.materialTapTargetSize,
+                  padding: conf.padding,
+                  shadowColor: conf.shadowColor,
+                  onDeleted: () {
+                    widget.initialItems.remove(item);
+                    setState(() {});
+                    widget.onChanged?.call();
+                  },
+                );
+              }).toList(),
         ),
       ],
     );

@@ -102,14 +102,14 @@ class ChipConfiguration {
   /// This only has an effect on widgets that respect the [DefaultTextStyle],
   /// such as [Text].
   ///
-  /// If [labelStyle.color] is a [MaterialStateProperty<Color>], [MaterialStateProperty.resolve]
-  /// is used for the following [MaterialState]s:
+  /// If [labelStyle.color] is a [MaterialStateProperty<Color>], [WidgetStateProperty.resolve]
+  /// is used for the following [WidgetState]s:
   ///
-  ///  * [MaterialState.disabled].
-  ///  * [MaterialState.selected].
-  ///  * [MaterialState.hovered].
-  ///  * [MaterialState.focused].
-  ///  * [MaterialState.pressed].
+  ///  * [WidgetState.disabled].
+  ///  * [WidgetState.selected].
+  ///  * [WidgetState.hovered].
+  ///  * [WidgetState.focused].
+  ///  * [WidgetState.pressed].
   final TextStyle? labelStyle;
 
   /// The [OutlinedBorder] to draw around the chip.
@@ -354,10 +354,10 @@ class SuggestionsBoxConfiguration {
   ///
   /// Note that if this is enabled, the only way
   /// to close the suggestions box is either manually via the
-  /// `SuggestionsBoxController` or when the user closes the software
+  /// `SuggestionsController` or when the user closes the software
   /// keyboard if `hideSuggestionsOnKeyboardHide` is set to true. Users
   /// with a physical keyboard will be unable to close the
-  /// box without a manual way via `SuggestionsBoxController`.
+  /// box without a manual way via `SuggestionsController`.
   ///
   /// Defaults to false.
   final bool keepSuggestionsOnSuggestionSelected;
@@ -378,11 +378,11 @@ class SuggestionsBoxConfiguration {
   /// The decoration of the material sheet that contains the suggestions.
   ///
   /// If null, default decoration with an elevation of 4.0 is used
-  final SuggestionsBoxDecoration suggestionsBoxDecoration;
+  final Decoration Function(BuildContext context)? decorationBuilder;
 
   /// Used to control the `_SuggestionsBox`. Allows manual control to
   /// open, close, toggle, or resize the `_SuggestionsBox`.
-  final SuggestionsBoxController? suggestionsBoxController;
+  final SuggestionsController? suggestionsBoxController;
 
   /// Determine the [SuggestionBox]'s direction.
   ///
@@ -395,6 +395,15 @@ class SuggestionsBoxConfiguration {
   /// [AxisDirection.left] and [AxisDirection.right] are not allowed.
   final AxisDirection direction;
 
+  static Decoration _defaultDecorationBuilder(BuildContext context) {
+    return BoxDecoration(
+      color: Theme.of(context).cardColor,
+      boxShadow: [
+        BoxShadow(color: Colors.black26, blurRadius: 4.0, offset: Offset(0, 2)),
+      ],
+    );
+  }
+
   ///
   const SuggestionsBoxConfiguration({
     this.direction = AxisDirection.down,
@@ -403,7 +412,7 @@ class SuggestionsBoxConfiguration {
     this.keepSuggestionsOnLoading = true,
     this.keepSuggestionsOnSuggestionSelected = false,
     this.suggestionsBoxController,
-    this.suggestionsBoxDecoration = const SuggestionsBoxDecoration(),
+    this.decorationBuilder = _defaultDecorationBuilder,
     this.suggestionsBoxVerticalOffset = 5.0,
   });
 }
